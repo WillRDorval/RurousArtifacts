@@ -7,6 +7,10 @@ see added please feel free to message me on Discord @Rurourin#1903
 
 ## Changelog
 
+**1.1.0**
+
+* Added the artifact of caffeination
+
 **1.0.2**
 
 * Actually fixed asset loading

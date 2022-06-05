@@ -34,8 +34,8 @@ namespace RurouArtifacts
         //If we see this PluginGUID as it is on thunderstore, we will deprecate this mod. Change the PluginAuthor and the PluginName !
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Rurourin";
-        public const string PluginName = "ArtifactofEgo";
-        public const string PluginVersion = "1.0.2";
+        public const string PluginName = "RurousArtifacts";
+        public const string PluginVersion = "1.1.0";
         
         public static AssetBundle MainAssets;
         public  List<ArtifactBase> ArtifactsList  =  new  List<ArtifactBase>();

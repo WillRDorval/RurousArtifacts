@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3294314515
+CRC: 3449308543
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: e28850c50bcb1e6211a45f803d66cb47
+    Hash: 854d52b1a432c8407537130683e630f6
   TypeTreeHash:
     serializedVersion: 2
     Hash: 7859cd501ea75098bcf7e53f1b477c26
@@ -15,4 +15,6 @@ SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/ArtifactofEgoDisabledIcon.png
 - Assets/ArtifactofEgoEnabledIcon.png
+- Assets/ArtifactOfCaffeinationIconDisabled.png
+- Assets/ArtifactOfCaffeinationIconEnabled.png
 Dependencies: []
