@@ -35,7 +35,7 @@ namespace RurouArtifacts
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Rurourin";
         public const string PluginName = "ArtifactofEgo";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.2";
         
         public static AssetBundle MainAssets;
         public  List<ArtifactBase> ArtifactsList  =  new  List<ArtifactBase>();
@@ -44,16 +44,21 @@ namespace RurouArtifacts
         public void Awake()
         {
             var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Info.Location) ?? string.Empty, "egoassets");
-            MainAssets =  AssetBundle.LoadFromFile(path);
-            var artifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
-            foreach (var artifactType in artifactTypes)
+            var assetRequest =   AssetBundle.LoadFromFileAsync(path);
+            assetRequest.m_completeCallback += _ =>
             {
-                ArtifactBase artifact = (ArtifactBase)Activator.CreateInstance(artifactType);
-                if (ValidateArtifact(artifact, ArtifactsList))
+                MainAssets = assetRequest.assetBundle;
+                var artifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
+                foreach (var artifactType in artifactTypes)
                 {
-                    artifact.Init(Config, MainAssets);
+                    ArtifactBase artifact = (ArtifactBase)Activator.CreateInstance(artifactType);
+                    if (ValidateArtifact(artifact, ArtifactsList))
+                    {
+                        artifact.Init(Config, MainAssets);
+                    }
                 }
-            }
+            };
+            
         }
 
         public bool ValidateArtifact(ArtifactBase artifact, List<ArtifactBase> artifactList)

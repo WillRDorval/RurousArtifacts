@@ -7,6 +7,11 @@ see added please feel free to message me on Discord @Rurourin#1903
 
 ## Changelog
 
+**1.0.2**
+
+* Actually fixed asset loading
+
+
 **1.0.1**
 
 * Fixed Asset locations for Thunderstore

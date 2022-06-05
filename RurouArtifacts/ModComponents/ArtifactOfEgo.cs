@@ -54,7 +54,6 @@ namespace RurouArtifacts.ModComponents
         
         public override void Init(ConfigFile config, AssetBundle bundle)
         {
-            Log.LogDebug("Ego init");
             CreateConfig(config);
             CreateLang();
             var enabledTexture = bundle.LoadAsset<Texture2D>("ArtifactofEgoEnabledIcon");
