@@ -170,17 +170,19 @@ namespace RurouArtifacts.ModComponents
                 return;
             }
 
-            ItemIndex toRemove = RandomItemWeighted(character, new []{hungry});
-            if (toRemove == ItemIndex.None)
+            for (int i = 0; i < NumberConverted.Value; i++)
             {
-                Schedule(Run.instance.time + (TimeBetweenConversionsInSeconds.Value/10.0f),
-                    () => { Convert(hungry, character, token, source); });
-                return;
+                ItemIndex toRemove = RandomItemWeighted(character, new []{hungry});
+                if (toRemove == ItemIndex.None)
+                {
+                    Schedule(Run.instance.time + (TimeBetweenConversionsInSeconds.Value/10.0f),
+                        () => { Convert(hungry, character, token, source); });
+                    return;
+                }
+                character.inventory.RemoveItem(toRemove);
+                character.inventory.GiveItem(hungry);
+                CharacterMasterNotificationQueue.PushItemTransformNotification(character, toRemove, hungry, CharacterMasterNotificationQueue.TransformationType.LunarSun);
             }
-            character.inventory.RemoveItem(toRemove);
-            character.inventory.GiveItem(hungry);
-            CharacterMasterNotificationQueue.PushItemTransformNotification(character, toRemove, hungry, CharacterMasterNotificationQueue.TransformationType.LunarSun);
-
             Schedule(Run.instance.time+TimeBetweenConversionsInSeconds.Value, () => {Convert(hungry, character, token, source);});
             
         }

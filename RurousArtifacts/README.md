@@ -10,6 +10,7 @@ see added please feel free to message me on Discord @Rurourin#1903
 **1.1.0**
 
 * Added the artifact of caffeination
+* Fixed Artifact of Ego conversion number not working
 
 **1.0.2**
 
