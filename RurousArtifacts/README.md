@@ -7,6 +7,10 @@ see added please feel free to message me on Discord @Rurourin#1903
 
 ## Changelog
 
+**1.0.1**
+
+* Fixed Asset locations for Thunderstore
+
 **1.0.0**
 
 * Added Artifact of Ego
