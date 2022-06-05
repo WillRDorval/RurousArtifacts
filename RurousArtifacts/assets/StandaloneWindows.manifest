@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 3817730212
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: egoassets
+      Dependencies: {}

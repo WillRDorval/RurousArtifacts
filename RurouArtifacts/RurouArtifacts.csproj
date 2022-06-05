@@ -11,6 +11,11 @@
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutDir>../RurousArtifacts</OutDir>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="libs\**" />
     <EmbeddedResource Remove="libs\**" />
