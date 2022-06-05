@@ -43,7 +43,7 @@ namespace RurouArtifacts
         //The Awake() method is run at the very start when the game is initialized.
         public void Awake()
         {
-            var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Info.Location) ?? string.Empty, "assets", "egoassets");
+            var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Info.Location) ?? string.Empty, "egoassets");
             MainAssets =  AssetBundle.LoadFromFile(path);
             var artifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
             foreach (var artifactType in artifactTypes)
