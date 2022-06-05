@@ -14,7 +14,7 @@ namespace RurouArtifacts.ModComponents
         public Sprite ArtifactEnabledIcon { get; set;}
         public Sprite ArtifactDisabledIcon { get; set; }
         public ArtifactDef ArtifactDef;
-        public bool ArtifactEnabled => RunArtifactManager.instance.IsArtifactEnabled(ArtifactDef);
+        public virtual bool ArtifactEnabled => RunArtifactManager.instance.IsArtifactEnabled(ArtifactDef);
         public abstract void Init(ConfigFile config, AssetBundle bundle);
         protected void CreateLang()
         {

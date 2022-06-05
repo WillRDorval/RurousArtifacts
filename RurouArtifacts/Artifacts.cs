@@ -70,9 +70,6 @@ namespace RurouArtifacts
             }
             return value;
         }
-
-        //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
-
         //The Update() method is run on every frame of the game.
         private void Update()
         {
