@@ -85,6 +85,8 @@ namespace RurouArtifacts.ModComponents
 
         private void OnGameOver(Run run, GameEndingDef end)
         {
+            _schedule.Clear();
+            
             foreach (var pair in _source)
             {
                 pair.Value.Cancel();
