@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3449308543
+CRC: 3672085167
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 854d52b1a432c8407537130683e630f6
+    Hash: e11280c6e156234372d87202b7485a3a
   TypeTreeHash:
     serializedVersion: 2
     Hash: 7859cd501ea75098bcf7e53f1b477c26
@@ -13,8 +13,10 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
-- Assets/ArtifactofEgoDisabledIcon.png
-- Assets/ArtifactofEgoEnabledIcon.png
-- Assets/ArtifactOfCaffeinationIconDisabled.png
-- Assets/ArtifactOfCaffeinationIconEnabled.png
+- Assets/on_coffee.png
+- Assets/off_ego.png
+- Assets/on_ego.png
+- Assets/on_grav.png
+- Assets/off_coffee.png
+- Assets/off_grav.png
 Dependencies: []

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using BepInEx.Configuration;
 using RoR2;
 using RoR2.ExpansionManagement;
@@ -23,13 +24,13 @@ public class ArtifactOfCaffeination : ArtifactBase
 
     private static ItemIndex _mocha = ItemIndex.None;
 
-    public static  ItemIndex MochaIndex
+    private static  ItemIndex MochaIndex
     {
         get
         {
             if (_mocha == ItemIndex.None)
             {
-                _mocha = ItemCatalog.FindItemIndex("AttackSpeedAndMoveSpeed");
+                _mocha = ItemCatalog.FindItemIndex(_mochaItemName.Value);
             }
 
             return _mocha;
@@ -41,12 +42,16 @@ public class ArtifactOfCaffeination : ArtifactBase
     private static int _numberMochas;
     
     private static ConfigEntry<int> _mochasPerStage;
+    private static ConfigEntry<string> _mochaItemName;
+    private static ConfigEntry<bool> _scaleEnemiesByPlayers;
+    private List<int> _handled = new();
+
     public override void Init(ConfigFile config, AssetBundle bundle)
     {
         CreateConfig(config);
         CreateLang();
-        var enabledTexture = bundle.LoadAsset<Texture2D>("ArtifactOfCaffeinationIconEnabled");
-        var disabledTexture = bundle.LoadAsset<Texture2D>("ArtifactOfCaffeinationIconDisabled");
+        var enabledTexture = bundle.LoadAsset<Texture2D>("on_coffee");
+        var disabledTexture = bundle.LoadAsset<Texture2D>("off_coffee");
         ArtifactEnabledIcon = Sprite.Create(enabledTexture, new Rect(0.0f, 0.0f, enabledTexture.width, enabledTexture.height), new Vector2(0.5f, 0.5f));
         ArtifactDisabledIcon = Sprite.Create(disabledTexture, new Rect(0.0f, 0.0f, disabledTexture.width, disabledTexture.height), new Vector2(0.5f, 0.5f));
         CreateArtifact();
@@ -57,6 +62,12 @@ public class ArtifactOfCaffeination : ArtifactBase
     {
         _mochasPerStage = config.Bind("Artifact: " + ArtifactName, "Number of mochas per stage",
             1, "How many mochas you (and the enemies) get each stage");
+        _mochaItemName = config.Bind("Artifact: " + ArtifactName, "Name of mocha item",
+            "AttackSpeedAndMoveSpeed", 
+            "The in code name of the item to give to players (change at your own risk)");
+        _scaleEnemiesByPlayers = config.Bind("Artifact: " + ArtifactName, "Scale enemies by number of players",
+            false, "Causes enemies to scale faster by the number of players (i.e. 2 times as many mochas in 2 player)");
+
     }
 
     public override void Hooks()
@@ -71,12 +82,18 @@ public class ArtifactOfCaffeination : ArtifactBase
 
         Run.onRunStartGlobal += _ =>
         {
+            _handled.Clear();
             _numberMochas = 0;
         };
         
         On.RoR2.CharacterMaster.OnServerStageBegin += (orig, self, stage) =>
         {
             orig.Invoke(self, stage);
+            if (!_handled.Contains(stage.GetInstanceID()))
+            {
+                _numberMochas += _mochasPerStage.Value*(_scaleEnemiesByPlayers.Value?Run.instance.participatingPlayerCount:1);
+                _handled.Add(stage.GetInstanceID());
+            }
             if (ArtifactEnabled&&self.teamIndex == TeamIndex.Player)
             {
                 OnStageStart(self);
@@ -86,7 +103,6 @@ public class ArtifactOfCaffeination : ArtifactBase
 
     private static void OnStageStart(CharacterMaster self)
     {
-        _numberMochas += _mochasPerStage.Value;
         self.inventory.GiveItem(MochaIndex, _mochasPerStage.Value);
         CharacterMasterNotificationQueue.PushItemNotification(self, MochaIndex);
     }

@@ -6,6 +6,7 @@ using System.Threading;
 using UnityEngine;
 using RoR2;
 using CharacterMaster = On.RoR2.CharacterMaster;
+using Console = System.Console;
 
 
 namespace RurouArtifacts.ModComponents
@@ -41,8 +42,9 @@ namespace RurouArtifacts.ModComponents
 
         private Xoroshiro128Plus _egoRng;
 
-        private Dictionary<int ,CancellationTokenSource> _source = new();
-        private Dictionary<int ,CancellationToken> _main = new();
+        private List<CancellationTokenSource> _source = new();
+        private List<CancellationToken> _main = new();
+        private List<int> _handled = new();
 
         private List<Scheduled> _schedule = new ();
         public static ConfigEntry<int> NumberConverted;
@@ -56,8 +58,8 @@ namespace RurouArtifacts.ModComponents
         {
             CreateConfig(config);
             CreateLang();
-            var enabledTexture = bundle.LoadAsset<Texture2D>("ArtifactofEgoEnabledIcon");
-            var disabledTexture = bundle.LoadAsset<Texture2D>("ArtifactofEgoDisabledIcon");
+            var enabledTexture = bundle.LoadAsset<Texture2D>("on_ego");
+            var disabledTexture = bundle.LoadAsset<Texture2D>("off_ego");
             ArtifactEnabledIcon = Sprite.Create(enabledTexture, new Rect(0.0f, 0.0f, enabledTexture.width, enabledTexture.height), new Vector2(0.5f, 0.5f));
             ArtifactDisabledIcon = Sprite.Create(disabledTexture, new Rect(0.0f, 0.0f, disabledTexture.width, disabledTexture.height), new Vector2(0.5f, 0.5f));
             CreateArtifact();
@@ -76,6 +78,24 @@ namespace RurouArtifacts.ModComponents
             CharacterMaster.OnServerStageBegin += (orig, self, stage) =>
             {
                 orig.Invoke(self, stage);
+                if (!_handled.Contains(stage.GetInstanceID()))
+                {
+                    foreach (var source in _source)
+                    {
+                        try
+                        {
+                            source.Cancel();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            
+                        }
+                        
+                    }
+                    _source.Clear();
+                    _main.Clear();
+                    _handled.Add(stage.GetInstanceID());
+                }
                 if (self.teamIndex == TeamIndex.Player)
                 {
                     OnStageStart(self);
@@ -86,38 +106,30 @@ namespace RurouArtifacts.ModComponents
         private void OnGameOver(Run run, GameEndingDef end)
         {
             _schedule.Clear();
+            _handled.Clear();
             
             foreach (var pair in _source)
             {
-                pair.Value.Cancel();
-                pair.Value.Dispose();
+                pair.Cancel();
+                pair.Dispose();
             }
+            _source.Clear();
+            _main.Clear();
         }
 
         private void OnStageStart( RoR2.CharacterMaster character)
         {
-            
-            _schedule.Clear();
-
             if (!ArtifactEnabled|| !HasValidItem(character.inventory.itemAcquisitionOrder))
             {
                 return;
             }
 
 
-            if (_source.ContainsKey(character.masterIndex.i))
-            {
-                var source = _source[character.masterIndex.i];
-                source.Cancel();
-                _source.Remove(character.masterIndex.i);
-                _main.Remove(character.masterIndex.i);
+            var source = new CancellationTokenSource();
+            var token = source.Token;
 
-            }
-
-            _source.Add(character.masterIndex.i, new CancellationTokenSource());
-            _main.Add(character.masterIndex.i, _source[character.masterIndex.i].Token);
-
-
+            _source.Add(source);
+            _main.Add(token);
 
 
             ItemIndex hungry = RandomItemWeighted(character);
@@ -128,7 +140,7 @@ namespace RurouArtifacts.ModComponents
             }
 
             
-            Schedule(Run.instance.time+TimeBetweenConversionsInSeconds.Value, () => {Convert(hungry, character, _main[character.masterIndex.i], _source[character.masterIndex.i]);});
+            Schedule(Run.instance.time+TimeBetweenConversionsInSeconds.Value, () => {Convert(hungry, character, token, source);});
 
 
             
@@ -166,6 +178,13 @@ namespace RurouArtifacts.ModComponents
         { 
             if (token.IsCancellationRequested)
             {
+                source.Dispose();
+                return;
+            }
+
+            if (!character.bodyInstanceObject.activeInHierarchy)
+            {
+                source.Cancel();
                 source.Dispose();
                 return;
             }

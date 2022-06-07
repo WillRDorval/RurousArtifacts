@@ -35,7 +35,7 @@ namespace RurouArtifacts
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Rurourin";
         public const string PluginName = "RurousArtifacts";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.1.1";
         
         public static AssetBundle MainAssets;
         public  List<ArtifactBase> ArtifactsList  =  new  List<ArtifactBase>();
