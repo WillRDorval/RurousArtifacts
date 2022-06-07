@@ -44,6 +44,7 @@ public class ArtifactOfCaffeination : ArtifactBase
     private static ConfigEntry<int> _mochasPerStage;
     private static ConfigEntry<string> _mochaItemName;
     private static ConfigEntry<bool> _scaleEnemiesByPlayers;
+    private static ConfigEntry<bool> _givePlayerItems;
     private List<int> _handled = new();
 
     public override void Init(ConfigFile config, AssetBundle bundle)
@@ -67,7 +68,8 @@ public class ArtifactOfCaffeination : ArtifactBase
             "The in code name of the item to give to players (change at your own risk)");
         _scaleEnemiesByPlayers = config.Bind("Artifact: " + ArtifactName, "Scale enemies by number of players",
             false, "Causes enemies to scale faster by the number of players (i.e. 2 times as many mochas in 2 player)");
-
+        _givePlayerItems = config.Bind("Artifact: " + ArtifactName, "Give player Mochas",
+            true, "Disable to give no items to the player(s) but still give them to enemies");
     }
 
     public override void Hooks()
@@ -103,8 +105,11 @@ public class ArtifactOfCaffeination : ArtifactBase
 
     private static void OnStageStart(CharacterMaster self)
     {
+        if (!_givePlayerItems.Value) return;
         self.inventory.GiveItem(MochaIndex, _mochasPerStage.Value);
         CharacterMasterNotificationQueue.PushItemNotification(self, MochaIndex);
+
+
     }
 
     private static void GiveMochas(CharacterMaster characterMaster)

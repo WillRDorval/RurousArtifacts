@@ -21,9 +21,14 @@ At the beginning of each stage you gain one (configurable) mocha
 but all enemies will also spawn with the number of mochas that it hsa given to you.
 Can be set to scale in multiplayer so the number of mochas the enemies get is scaled by the number
 of players in the lobby. The item name used to find mochas can be changed so you can use a custom modded item
-instead of vanilla mochas (or any item if you so desire)
+instead of vanilla mochas (or any item if you so desire). Can be set to only give enemies mochas
+for a more challenging experience.
 
 ## Changelog
+
+**1.1.2**
+
+* Added additional configuration for Artifact of Caffeination
 
 **1.1.1**
 
