@@ -26,6 +26,12 @@ for a more challenging experience.
 
 ## Changelog
 
+**1.1.3**
+
+* Fixed bug that occured when dying in multiplayer with artifact of ego enabled
+* Changed artifact of caffeination to use Evolution UI
+* Known issues: monster's items display will be one behind the actual value for the first run with the artifact enabled each session with artifact of caffeination
+
 **1.1.2**
 
 * Added additional configuration for Artifact of Caffeination

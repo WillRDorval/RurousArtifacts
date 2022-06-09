@@ -2,8 +2,12 @@
 using System.Linq;
 using BepInEx.Configuration;
 using RoR2;
+using RoR2.Artifacts;
 using RoR2.ExpansionManagement;
+using RoR2.UI;
 using UnityEngine;
+using UnityEngine.Networking;
+using EnemyInfoPanelInventoryProvider = On.RoR2.EnemyInfoPanelInventoryProvider;
 
 namespace RurouArtifacts.ModComponents;
 
@@ -37,7 +41,9 @@ public class ArtifactOfCaffeination : ArtifactBase
         }
     }
 
-    
+    private Inventory EvolutionInv => MonsterTeamGainsItemsArtifactManager.monsterTeamInventory;
+    private static Inventory CaffeineInv;
+
 
     private static int _numberMochas;
     
@@ -56,8 +62,11 @@ public class ArtifactOfCaffeination : ArtifactBase
         ArtifactEnabledIcon = Sprite.Create(enabledTexture, new Rect(0.0f, 0.0f, enabledTexture.width, enabledTexture.height), new Vector2(0.5f, 0.5f));
         ArtifactDisabledIcon = Sprite.Create(disabledTexture, new Rect(0.0f, 0.0f, disabledTexture.width, disabledTexture.height), new Vector2(0.5f, 0.5f));
         CreateArtifact();
+        NetworkedInventoryPrefab = LegacyResourcesAPI.Load<GameObject>("Prefabs/NetworkedObjects/MonsterTeamGainsItemsArtifactInventory");
         Hooks();
     }
+
+    private static GameObject NetworkedInventoryPrefab { get; set; }
 
     private void CreateConfig(ConfigFile config)
     {
@@ -74,34 +83,131 @@ public class ArtifactOfCaffeination : ArtifactBase
 
     public override void Hooks()
     {
-        CharacterMaster.onStartGlobal += master =>
+        SpawnCard.onSpawnedServerGlobal += OnSpawnCardGlobal;
+        Run.onRunStartGlobal += OnRunStartGlobal;
+        Run.onRunDestroyGlobal += OnRunDestroyGlobal;
+
+        On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnRunStartGlobal += (orig, run) =>
         {
-            if (ArtifactEnabled && master.teamIndex != TeamIndex.Player)
+            if (!RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.monsterTeamGainsItemsArtifactDef))
             {
-                GiveMochas(master);
+                return;
             }
+
+            orig(run);
         };
 
-        Run.onRunStartGlobal += _ =>
+        On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerStageBegin += (orig, stage) =>
         {
-            _handled.Clear();
-            _numberMochas = 0;
+            if (!RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.monsterTeamGainsItemsArtifactDef))
+            {
+                return;
+            }
+
+            orig(stage);
+        };
+
+        On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnPrePopulateSceneServer += (orig, director) =>
+        {
+            if (!RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.monsterTeamGainsItemsArtifactDef))
+            {
+                return;
+            }
+
+            orig(director);
+        };
+
+        EnemyInfoPanelInventoryProvider.Awake += (orig, self) =>
+        {
+            orig(self);
+            self.enabled = true;
+        };
+
+        EnemyInfoPanelInventoryProvider.OnInventoryChanged += (orig, self) =>
+        {
+            orig(self);
+        };
+
+        On.RoR2.UI.EnemyInfoPanel.RefreshHUD += (orig, hud) =>
+        {
+            orig(hud);
+        };
+
+        Stage.onServerStageBegin += stage =>
+        {
+            if (!_handled.Contains(stage.GetInstanceID())&& ArtifactEnabled)
+            {
+                if (RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.monsterTeamGainsItemsArtifactDef))
+                {
+                    EvolutionInv.GiveItem(_mocha, _mochasPerStage.Value *
+                        (_scaleEnemiesByPlayers.Value ? Run.instance.participatingPlayerCount : 1));
+                    EnemyInfoPanel.RefreshAll();
+                }
+                else
+                {
+                    CaffeineInv.GiveItem(_mocha, _mochasPerStage.Value *
+                        (_scaleEnemiesByPlayers.Value ? Run.instance.participatingPlayerCount : 1));
+                    var instancesList = InstanceTracker.GetInstancesList<RoR2.EnemyInfoPanelInventoryProvider>();
+                    foreach (var instance in instancesList)
+                    {
+                        if (instance.inventory == CaffeineInv)
+                        {
+                            instance.MarkAsDirty();
+                
+                        }
+                    }
+                }
+                _handled.Add(stage.GetInstanceID());
+            }
         };
         
         On.RoR2.CharacterMaster.OnServerStageBegin += (orig, self, stage) =>
         {
             orig.Invoke(self, stage);
-            if (!_handled.Contains(stage.GetInstanceID()))
-            {
-                _numberMochas += _mochasPerStage.Value*(_scaleEnemiesByPlayers.Value?Run.instance.participatingPlayerCount:1);
-                _handled.Add(stage.GetInstanceID());
-            }
+            
             if (ArtifactEnabled&&self.teamIndex == TeamIndex.Player)
             {
                 OnStageStart(self);
             }
         };
     }
+
+    private void OnRunStartGlobal(Run run)
+    {
+        if (!NetworkServer.active||!ArtifactEnabled) return;
+        CaffeineInv = Object.Instantiate(NetworkedInventoryPrefab).GetComponent<Inventory>();
+        CaffeineInv.GetComponent<TeamFilter>().teamIndex = TeamIndex.Monster;
+        NetworkServer.Spawn(CaffeineInv.gameObject);
+
+    }
+
+    private static void OnRunDestroyGlobal(Run run)
+    {
+        if (CaffeineInv)
+        {
+            NetworkServer.Destroy(CaffeineInv.gameObject);
+        }
+
+        CaffeineInv = null;
+    }
+
+    private void OnSpawnCardGlobal(SpawnCard.SpawnResult result)
+    {
+        if (RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.monsterTeamGainsItemsArtifactDef) ||
+            !ArtifactEnabled || !NetworkServer.active) return;
+        var characterMaster = result.spawnedInstance ? result.spawnedInstance.GetComponent<CharacterMaster>() : null;
+        if (!characterMaster)
+        {
+            return;
+        }
+        if (characterMaster.teamIndex != TeamIndex.Monster)
+        {
+            return;
+        }
+
+        characterMaster.inventory.AddItemsFrom(CaffeineInv);
+    }
+    
 
     private static void OnStageStart(CharacterMaster self)
     {

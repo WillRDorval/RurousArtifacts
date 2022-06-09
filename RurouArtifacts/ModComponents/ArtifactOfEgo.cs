@@ -182,7 +182,7 @@ namespace RurouArtifacts.ModComponents
                 return;
             }
 
-            if (!character.bodyInstanceObject.activeInHierarchy)
+            if (character.bodyInstanceObject is null||!character.bodyInstanceObject.activeInHierarchy)
             {
                 source.Cancel();
                 source.Dispose();
